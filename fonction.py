@@ -89,74 +89,53 @@ def afficher_automate(automate):
                 ligne += texte + "   "
 
         print(ligne)
+
 def non_standard(automate):
-    """
-    Vérifie si un automate fini (AF) n'est PAS standard.
-
-    Un automate est STANDARD si et seulement si :
-      1. Il possède exactement UN SEUL état initial.
-      2. Aucune transition n'a pour destination l'état initial
-         (l'état initial n'a aucune transition entrante).
-
-    Retourne :
-      True  -> l'automate N'EST PAS standard (standardisation nécessaire)
-      False -> l'automate EST standard (rien à faire)
-    """
-
-    # Condition 1 : il faut exactement un état initial
-    if len(automate.etats_initiaux) != 1:
-        return True  # 0 ou plusieurs états initiaux → non standard
-
-    etat_initial = automate.etats_initiaux[0]
-
-    # Condition 2 : aucune transition ne doit arriver sur l'état initial
-    for (depart, symbole, arrivee) in automate.transitions:
-        if arrivee == etat_initial:
-            return True  # une transition entre sur l'état initial → non standard
-
-    # Les deux conditions sont satisfaites → l'automate est standard
-    return False
+    pass
 
 def standardisation(automate):
-    """
-    Standardise un automate fini en créant un nouvel état initial i0
-    qui hérite de toutes les transitions sortantes des anciens états initiaux.
-
-    Retourne un nouvel automate standardisé (l'original n'est pas modifié).
-    """
-
-    # On travaille sur une copie pour ne pas modifier l'automate original
-    std = copy.deepcopy(automate)
-
-    # Étape 1 : créer un nouvel état initial i0 (numéro = max des états + 1)
-    i0 = max(std.etats) + 1
-    std.etats.append(i0)
-
-    # Étape 2 : i0 devient le seul état initial
-    anciens_initiaux = std.etats_initiaux
-    std.etats_initiaux = [i0]
-
-    # Étape 3 : i0 hérite des transitions sortantes de tous les anciens états initiaux
-    nouvelles_transitions = []
-    for (depart, symbole, arrivee) in std.transitions:
-        if depart in anciens_initiaux:
-            nouvelles_transitions.append((i0, symbole, arrivee))
-
-    std.transitions += nouvelles_transitions
-
-    # Étape 4 : si un ancien état initial était final, i0 devient aussi final
-    for ancien in anciens_initiaux:
-        if ancien in std.etats_finaux:
-            std.etats_finaux.append(i0)
-            break  # une seule fois suffit
-
-    return std
+    pass
 
 def est_un_automate_deterministe(automate):
-    pass
+    print("\n--- Vérification du déterminisme ---")
+    raisons = []
+
+    # Vérification de l'état initial unique
+    if len(automate.etats_initiaux) != 1:
+        raisons.append(f"Il y a {len(automate.etats_initiaux)} états initiaux (il en faut exactement 1).")
+
+    # Vérification de l'unicité des transitions (pas de transitions multiples pour un même symbole)
+    for etat in automate.etats:
+        for symbole in automate.alphabet:
+            cibles = [t[2] for t in automate.transitions if t[0] == etat and t[1] == symbole]
+            if len(cibles) > 1:
+                raisons.append(f"L'état {etat} possède plusieurs transitions pour le symbole '{symbole}' vers {cibles}")
+
+    if raisons:
+        for r in raisons:
+            print(f"Cause : {r}")
+        return False
+
+    print("L'automate est déterministe.")
+    return True
 
 def est_un_automate_complet(automate):
-    pass
+    print("\n--- Vérification de la complétude ---")
+    manquants = []
+
+    for etat in automate.etats:
+        for symbole in automate.alphabet:
+            # On cherche s'il existe au moins une transition
+            trouve = any(t[0] == etat and t[1] == symbole for t in automate.transitions)
+            if not trouve:
+                manquants.append(f"({etat}, {symbole})")
+
+    if manquants:
+        print(f"L'automate n'est pas complet. Transitions manquantes : {', '.join(manquants)}")
+        return False
+
+    print("L'automate est complet.")
+    return True
 
 def completion(automate):
     pass
@@ -173,11 +152,31 @@ def minimisation(automate):
 def afficher_automate_minimal(automate):
     pass
 
-def lire_mot(mot):
-    pass
+def lire_mot():
+    return input("Saisissez un mot (ou tapez 'fin' pour terminer) : ")
 
 def reconnaitre_mot(mot, automate):
-    pass
+    etat_courant = automate["initial"]
+
+    for char in mot:
+        if char in automate["transitions"].get(etat_courant, {}):
+            etat_courant = automate["transitions"][etat_courant][char]
+        else:
+            print("non")
+            return
+
+    if etat_courant in automate["finaux"]:
+        print("oui")
+    else:
+        print("non")
 
 def automate_complementaire(automate):
-    pass
+    complement = copy.deepcopy(automate)
+
+    nouveaux_terminaux = set()
+    for etat in automate.liste_etats:
+        if etat not in automate.etats_terminaux:
+            nouveaux_terminaux.add(etat)
+
+    complement.etats_terminaux = nouveaux_terminaux
+    return complement

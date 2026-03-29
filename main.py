@@ -55,7 +55,7 @@ def main():
         elif choix == "5":
             mot = lire_mot()
 
-            while mot != "fin":
+            while mot != "stop":
                 reconnaitre_mot(mot, fichier_automate)
                 mot = lire_mot()
 
