@@ -1,0 +1,21 @@
+4
+4
+1 2
+2 1 2
+16
+1 a 1
+1 c 0
+0 b 0
+0 d 1
+2 a 1
+2 c 0
+1 b P
+1 d P
+0 a P
+0 c P
+2 b P
+2 d P
+P a P
+P b P
+P c P
+P d P

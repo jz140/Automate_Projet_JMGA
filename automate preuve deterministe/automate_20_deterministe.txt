@@ -1,0 +1,29 @@
+4
+6
+1 9
+1 5
+24
+9 a 2
+9 b 3
+9 c 4
+9 d 5
+2 a P
+2 b 3
+2 c P
+2 d P
+3 a P
+3 b P
+3 c 4
+3 d P
+4 a P
+4 b P
+4 c P
+4 d 5
+5 a P
+5 b P
+5 c P
+5 d P
+P a P
+P b P
+P c P
+P d P
