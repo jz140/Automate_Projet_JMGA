@@ -7,6 +7,7 @@ class Automate:
         self.etats_initiaux = []
         self.etats_finaux = []
         self.transitions = []
+
 def lire_automate_sur_fichier(nom_du_fichier):
     automate = Automate()
 
@@ -45,6 +46,7 @@ def lire_automate_sur_fichier(nom_du_fichier):
         automate.transitions.append((depart, symbole, arrivee))
 
     return automate
+
 def afficher_automate(automate):
 
     # entête
@@ -101,7 +103,6 @@ def non_standard(automate):
         if arrivee == etat_initial:
             return True
 
-
     return False
 
 def standardisation(automate):
@@ -110,7 +111,6 @@ def standardisation(automate):
 
     i0 = max(std.etats) + 1
     std.etats.append(i0)
-
 
     anciens_initiaux = std.etats_initiaux
     std.etats_initiaux = [i0]
@@ -133,11 +133,9 @@ def est_un_automate_deterministe(automate):
     print("\n--- Vérification du déterminisme ---")
     raisons = []
 
-    # Vérification de l'état initial unique
     if len(automate.etats_initiaux) != 1:
         raisons.append(f"Il y a {len(automate.etats_initiaux)} états initiaux (il en faut exactement 1).")
 
-    # Vérification de l'unicité des transitions (pas de transitions multiples pour un même symbole)
     for etat in automate.etats:
         for symbole in automate.alphabet:
             cibles = [t[2] for t in automate.transitions if t[0] == etat and t[1] == symbole]
@@ -158,7 +156,6 @@ def est_un_automate_complet(automate):
 
     for etat in automate.etats:
         for symbole in automate.alphabet:
-            # On cherche s'il existe au moins une transition
             trouve = any(t[0] == etat and t[1] == symbole for t in automate.transitions)
             if not trouve:
                 manquants.append(f"({etat}, {symbole})")
@@ -177,14 +174,12 @@ def completion(automate):
     deja_presents = {(t[0], t[1]) for t in afdc.transitions}
     puits_utilise = False
 
-    # On cherche les manques
     for etat in afdc.etats:
         for symbole in afdc.alphabet:
             if (etat, symbole) not in deja_presents:
                 afdc.transitions.append((etat, symbole, "P"))
                 puits_utilise = True
 
-    # Si on a envoyé vers "P", on l'ajoute aux états et on crée ses boucles
     if puits_utilise:
         afdc.etats.append("P")
         for symbole in afdc.alphabet:
@@ -198,69 +193,125 @@ def determinisation_et_completion_automate(automate):
     AFDC.alphabet = automate.alphabet[:]
     AFDC.mapping = {}
 
-    # On initie l'état initial (mélange de tous les états initiaux de AF)
-    # On trie pour que {1,2} soit identique à {2,1}
     etat_init = tuple(sorted(list(set(automate.etats_initiaux))))
 
-    file_a_traiter = [etat_init] # Liste des "groupes" à analyser
-    groupes_vus = [etat_init]    # Pour ne pas traiter deux fois le même groupe
+    file_a_traiter = [etat_init]
+    groupes_vus = [etat_init]
 
     while len(file_a_traiter) > 0:
         groupe_courant = file_a_traiter.pop(0)
 
-        #Création du nom de l'état (ex: "1.2" ou "P" si vide)
         if len(groupe_courant) == 0:
             nom_courant = "P"
         else:
             nom_courant = ".".join(map(str, groupe_courant))
 
-        # On ajoute l'état à l'AFDC s'il n'y est pas déjà
         if nom_courant not in AFDC.etats:
             AFDC.etats.append(nom_courant)
             AFDC.mapping[nom_courant] = list(groupe_courant)
 
-            # Est-ce un état initial ?
             if groupe_courant == etat_init:
                 AFDC.etats_initiaux.append(nom_courant)
 
-            # Est-ce un état final ? (si au moins un membre est final)
             for e in groupe_courant:
                 if e in automate.etats_finaux:
                     AFDC.etats_finaux.append(nom_courant)
-                    break # Un seul suffit
+                    break
 
-        # Pour chaque lettre, on regarde où va le groupe
         for lettre in AFDC.alphabet:
             union_destinations = []
 
             for e in groupe_courant:
                 for t in automate.transitions:
-                    # t[0]=départ, t[1]=lettre, t[2]=arrivée
                     if t[0] == e and t[1] == lettre:
                         if t[2] not in union_destinations:
                             union_destinations.append(t[2])
 
-            #On transforme le résultat en tuple trié
             groupe_suivant = tuple(sorted(union_destinations))
 
-            #Nom du groupe suivant
             if len(groupe_suivant) == 0:
                 nom_suivant = "P"
             else:
                 nom_suivant = ".".join(map(str, groupe_suivant))
 
-            #On crée la transition
             AFDC.transitions.append((nom_courant, lettre, nom_suivant))
 
-            #Si ce nouveau groupe n'a jamais été vu, on l'ajoute à la file
             if groupe_suivant not in groupes_vus:
                 groupes_vus.append(groupe_suivant)
                 file_a_traiter.append(groupe_suivant)
+
+
+    nom_fichier = input("Nom du fichier de sauvegarde (sans extension) : ") + ".txt"
+
+
+    index_etats = {nom: i for i, nom in enumerate(AFDC.etats)}
+
+    with open(nom_fichier, "w") as f:
+        f.write(f"{len(AFDC.alphabet)}\n")
+        f.write(f"{len(AFDC.etats)}\n")
+
+
+        f.write(f"{len(AFDC.etats_initiaux)} {' '.join(map(str, AFDC.etats_initiaux))}\n")
+        f.write(f"{len(AFDC.etats_finaux)} {' '.join(map(str, AFDC.etats_finaux))}\n")
+
+        f.write(f"{len(AFDC.transitions)}\n")
+        for (dep, sym, arr) in AFDC.transitions:
+            f.write(f"{dep} {sym} {arr}\n")
+
+    print(f"Automate déterministe complet sauvegardé dans '{nom_fichier}'")
+
 
     return AFDC
 
 def afficher_automate_deterministe_complet(automate):
     afficher_automate(automate)
+
+def reconnaitre_mot(mot, automate):
+    if not automate.etats_initiaux:
+        print("non")
+        return
+
+    etats_courants = set(automate.etats_initiaux)
+
+    for char in mot:
+        prochains = set()
+        for etat in etats_courants:
+            for (depart, symbole, arrivee) in automate.transitions:
+                if depart == etat and symbole == char:
+                    prochains.add(arrivee)
+        etats_courants = prochains
+        if not etats_courants:
+            print("non")
+            return
+
+    for etat in etats_courants:
+        if etat in automate.etats_finaux:
+            print("oui")
+            return
+    print("non")
+
+def lire_mot():
+    return input("Saisissez un mot (ou tapez 'stop' pour terminer) : ")
+
+
+def automate_complementaire(automate):
+    if not est_un_automate_deterministe(automate):
+        print("L'automate n'est pas déterminisé.")
+        return None
+
+    if not est_un_automate_complet(automate):
+        print("L'automate n'est pas complet.")
+        return None
+
+    complement = copy.deepcopy(automate)
+
+    nouveaux_finaux = []
+    for etat in automate.etats:
+        if etat not in automate.etats_finaux:
+            nouveaux_finaux.append(etat)
+
+    complement.etats_finaux = nouveaux_finaux
+    return complement
 
 def minimisation(automate):
 
@@ -272,16 +323,21 @@ def minimisation(automate):
         print("L'automate n'est pas complet.")
         return None
 
-
-    if not automate.liste_etats:
+    if not automate.etats:
         return automate
 
     print("\n--- Minimisation de l'automate ---")
 
-    # 1. Partition initiale P0 : Séparer Terminaux (T) et Non-Terminaux (NT)
+    def get_dest(etat, symbole):
+        for (d, s, a) in automate.transitions:
+            if d == etat and s == symbole:
+                return a
+        return None
+
+
     partition = {}
-    for etat in automate.liste_etats:
-        partition[etat] = 1 if etat in automate.etats_terminaux else 0
+    for etat in automate.etats:
+        partition[etat] = 1 if etat in automate.etats_finaux else 0
 
     def afficher_partition(p, etape):
         groupes = {}
@@ -296,16 +352,14 @@ def minimisation(automate):
     while True:
         etape += 1
         nouvelle_partition = {}
-        signatures = {} # (Groupe_actuel, Groupe_dest_a, Groupe_dest_b...) -> Nouvel_ID
+        signatures = {}
         next_id = 0
 
-        for etat in automate.liste_etats:
-            # La signature d'un état est son groupe actuel + les groupes de ses destinations
+        for etat in automate.etats:
             signature = [partition[etat]]
             for symbole in automate.alphabet:
-                dest = automate.transitions[etat][symbole][0]
+                dest = get_dest(etat, symbole)
                 signature.append(partition[dest])
-
             signature = tuple(signature)
             if signature not in signatures:
                 signatures[signature] = next_id
@@ -314,90 +368,48 @@ def minimisation(automate):
 
         afficher_partition(nouvelle_partition, etape)
 
-        # Si la partition est identique à la précédente (même nombre de groupes et répartition)
-        # On compare si les états qui étaient ensemble le restent
         if len(set(nouvelle_partition.values())) == len(set(partition.values())):
-            # Vérification plus profonde : les groupes sont-ils identiques ?
             stable = True
-            for e1 in automate.liste_etats:
-                for e2 in automate.liste_etats:
+            for e1 in automate.etats:
+                for e2 in automate.etats:
                     if (partition[e1] == partition[e2]) != (nouvelle_partition[e1] == nouvelle_partition[e2]):
                         stable = False
                         break
-            if stable: break
+                if not stable:
+                    break
+            if stable:
+                break
 
         partition = nouvelle_partition
 
-    # 2. Construction de l'automate minimal
+
     print("\nConstruction de l'automate minimal...")
     min_auto = Automate()
-    min_auto.nb_symboles = automate.nb_symboles
-    min_auto.alphabet = automate.alphabet.copy()
+    min_auto.alphabet = automate.alphabet[:]
 
-    # Création des nouveaux noms d'états basés sur les groupes finaux
     groupes_finaux = {}
     for e, g in partition.items():
         groupes_finaux.setdefault(g, []).append(e)
 
     mapping_nom = {g: ".".join(map(str, sorted(groupes_finaux[g]))) for g in groupes_finaux}
 
-    min_auto.liste_etats = list(mapping_nom.values())
-    min_auto.nb_etats = len(min_auto.liste_etats)
+    min_auto.etats = list(mapping_nom.values())
 
     for g, nom_fusionne in mapping_nom.items():
         etat_representant = groupes_finaux[g][0]
 
-        # Initiales / Terminales
         if etat_representant in automate.etats_initiaux:
-            min_auto.etats_initiaux.add(nom_fusionne)
-        if etat_representant in automate.etats_terminaux:
-            min_auto.etats_terminaux.add(nom_fusionne)
+            min_auto.etats_initiaux.append(nom_fusionne)
+        if etat_representant in automate.etats_finaux:
+            min_auto.etats_finaux.append(nom_fusionne)
 
-        # Transitions
-        min_auto.transitions[nom_fusionne] = {}
         for symbole in automate.alphabet:
-            dest_origine = automate.transitions[etat_representant][symbole][0]
+            dest_origine = get_dest(etat_representant, symbole)
             groupe_dest = partition[dest_origine]
-            min_auto.transitions[nom_fusionne][symbole] = [mapping_nom[groupe_dest]]
+            min_auto.transitions.append(
+                (nom_fusionne, symbole, mapping_nom[groupe_dest])
 
     return min_auto
 
 def afficher_automate_minimal(automate):
     afficher_automate(automate)
-
-def lire_mot():
-    return input("Saisissez un mot (ou tapez 'fin' pour terminer) : ")
-
-def reconnaitre_mot(mot, automate):
-    etat_courant = automate["initial"]
-
-    for char in mot:
-        if char in automate["transitions"].get(etat_courant, {}):
-            etat_courant = automate["transitions"][etat_courant][char]
-        else:
-            print("non")
-            return
-
-    if etat_courant in automate["finaux"]:
-        print("oui")
-    else:
-        print("non")
-
-def automate_complementaire(automate):
-    if not est_un_automate_deterministe(automate):
-        print("L'automate n'est pas déterminisé.")
-        return None
-
-    if not est_un_automate_complet(automate):
-        print("L'automate n'est pas complet.")
-        return None
-
-    complement = copy.deepcopy(automate)
-
-    nouveaux_terminaux = set()
-    for etat in automate.liste_etats:
-        if etat not in automate.etats_terminaux:
-            nouveaux_terminaux.add(etat)
-
-    complement.etats_terminaux = nouveaux_terminaux
-    return complement
