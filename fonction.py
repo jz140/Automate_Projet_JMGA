@@ -100,7 +100,7 @@ def standardisation(automate):
             std.etats_finaux.append(i0)
             break
 
-    nom_fichier = input("Nom du fichier pour le nouvel automate standardisé (sans extension) : ") + ".txt"
+    nom_fichier = input("Nom du fichier pour le nouvel automate standardisé : ") + ".txt"
     with open(nom_fichier, "w") as f:
         # alphabet
         f.write(f"{len(std.alphabet)}\n")
@@ -150,18 +150,47 @@ def est_un_automate_complet(automate):
     return True
 
 def completion(automate):
+    import copy
+
     afdc = copy.deepcopy(automate)
     deja_presents = {(t[0], t[1]) for t in afdc.transitions}
     puits_utilise = False
+
     for etat in afdc.etats:
         for symbole in afdc.alphabet:
             if (etat, symbole) not in deja_presents:
                 afdc.transitions.append((etat, symbole, "P"))
                 puits_utilise = True
-    if puits_utilise and "P" not in afdc.etats:
-        afdc.etats.append("P")
+
+    if puits_utilise:
+        if "P" not in afdc.etats:
+            afdc.etats.append("P")
         for symbole in afdc.alphabet:
             afdc.transitions.append(("P", symbole, "P"))
+
+    # --- Sauvegarde fichier ---
+    nom_fichier = input("Nom du fichier pour l'automate complété  : ") + ".txt"
+
+    with open(nom_fichier, "w") as f:
+        # alphabet
+        f.write(f"{len(afdc.alphabet)}\n")
+
+        # états
+        f.write(f"{len(afdc.etats)}\n")
+
+        # états initiaux
+        f.write(f"{len(afdc.etats_initiaux)} {' '.join(map(str, afdc.etats_initiaux))}\n")
+
+        # états finaux
+        f.write(f"{len(afdc.etats_finaux)} {' '.join(map(str, afdc.etats_finaux))}\n")
+
+        # transitions
+        f.write(f"{len(afdc.transitions)}\n")
+        for (dep, sym, arr) in afdc.transitions:
+            f.write(f"{dep} {sym} {arr}\n")
+
+    print(f"Automate complété sauvegardé dans '{nom_fichier}'")
+
     return afdc
 
 def determinisation_et_completion_automate(automate):
@@ -200,7 +229,7 @@ def determinisation_et_completion_automate(automate):
                 groupes_vus.append(groupe_suivant)
                 file_a_traiter.append(groupe_suivant)
 
-    nom_fichier = input("Nom du fichier de sauvegarde (sans extension) : ") + ".txt"
+    nom_fichier = input("Nom du fichier de sauvegarde deterministe : ") + ".txt"
     with open(nom_fichier, "w") as f:
         f.write(f"{len(AFDC.alphabet)}\n")
         f.write(f"{len(AFDC.etats)}\n")
