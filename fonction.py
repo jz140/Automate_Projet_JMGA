@@ -171,7 +171,26 @@ def est_un_automate_complet(automate):
     return True
 
 def completion(automate):
-    pass
+
+    print("\n--- Complétion de l'automate ---")
+    afdc = copy.deepcopy(automate)
+    deja_presents = {(t[0], t[1]) for t in afdc.transitions}
+    puits_utilise = False
+
+    # On cherche les manques
+    for etat in afdc.etats:
+        for symbole in afdc.alphabet:
+            if (etat, symbole) not in deja_presents:
+                afdc.transitions.append((etat, symbole, "P"))
+                puits_utilise = True
+
+    # Si on a envoyé vers "P", on l'ajoute aux états et on crée ses boucles
+    if puits_utilise:
+        afdc.etats.append("P")
+        for symbole in afdc.alphabet:
+            afdc.transitions.append(("P", symbole, "P"))
+
+    return afdc
 
 def determinisation_et_completion_automate(automate):
     pass
@@ -180,7 +199,15 @@ def afficher_automate_deterministe_complet(automate):
     afficher_automate(automate)
 
 def minimisation(automate):
-    pass
+    if not est_un_automate_deterministe(automate):
+        print("L'automate n'est pas déterministe.")
+        return None
+
+    if not est_un_automate_complet(automate):
+        print("L'automate n'est pas complet.")
+        return None
+
+
 
 def afficher_automate_minimal(automate):
     afficher_automate(automate)
