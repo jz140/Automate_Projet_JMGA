@@ -177,13 +177,13 @@ def determinisation_et_completion_automate(automate):
     pass
 
 def afficher_automate_deterministe_complet(automate):
-    pass
+    afficher_automate(automate)
 
 def minimisation(automate):
     pass
 
 def afficher_automate_minimal(automate):
-    pass
+    afficher_automate(automate)
 
 def lire_mot():
     return input("Saisissez un mot (ou tapez 'fin' pour terminer) : ")
@@ -204,6 +204,14 @@ def reconnaitre_mot(mot, automate):
         print("non")
 
 def automate_complementaire(automate):
+    if not est_un_automate_deterministe(automate):
+        print("L'automate n'est pas déterminisé.")
+        return None
+
+    if not est_un_automate_complet(automate):
+        print("L'automate n'est pas complet.")
+        return None
+
     complement = copy.deepcopy(automate)
 
     nouveaux_terminaux = set()
