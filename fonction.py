@@ -89,6 +89,7 @@ def afficher_automate(automate):
                 ligne += texte + "   "
 
         print(ligne)
+
 def non_standard(automate):
     pass
 
@@ -120,7 +121,19 @@ def lire_mot(mot):
     pass
 
 def reconnaitre_mot(mot, automate):
-    pass
+    etat_courant = automate["initial"]
+
+    for char in mot:
+        if char in automate["transitions"].get(etat_courant, {}):
+            etat_courant = automate["transitions"][etat_courant][char]
+        else:
+            print("non")
+            return
+
+    if etat_courant in automate["finaux"]:
+        print("oui")
+    else:
+        print("non")
 
 def automate_complementaire(automate):
     pass
