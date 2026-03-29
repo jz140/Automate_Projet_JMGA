@@ -199,6 +199,7 @@ def afficher_automate_deterministe_complet(automate):
     afficher_automate(automate)
 
 def minimisation(automate):
+
     if not est_un_automate_deterministe(automate):
         print("L'automate n'est pas déterministe.")
         return None
@@ -208,6 +209,94 @@ def minimisation(automate):
         return None
 
 
+    if not automate.liste_etats:
+        return automate
+
+    print("\n--- Minimisation de l'automate ---")
+
+    # 1. Partition initiale P0 : Séparer Terminaux (T) et Non-Terminaux (NT)
+    partition = {}
+    for etat in automate.liste_etats:
+        partition[etat] = 1 if etat in automate.etats_terminaux else 0
+
+    def afficher_partition(p, etape):
+        groupes = {}
+        for e, g in p.items():
+            groupes.setdefault(g, []).append(e)
+        print(f"P{etape} : ", end="")
+        print(" ; ".join([f"{{{','.join(map(str, sorted(groupes[g])))}}}" for g in sorted(groupes)]))
+
+    etape = 0
+    afficher_partition(partition, etape)
+
+    while True:
+        etape += 1
+        nouvelle_partition = {}
+        signatures = {} # (Groupe_actuel, Groupe_dest_a, Groupe_dest_b...) -> Nouvel_ID
+        next_id = 0
+
+        for etat in automate.liste_etats:
+            # La signature d'un état est son groupe actuel + les groupes de ses destinations
+            signature = [partition[etat]]
+            for symbole in automate.alphabet:
+                dest = automate.transitions[etat][symbole][0]
+                signature.append(partition[dest])
+
+            signature = tuple(signature)
+            if signature not in signatures:
+                signatures[signature] = next_id
+                next_id += 1
+            nouvelle_partition[etat] = signatures[signature]
+
+        afficher_partition(nouvelle_partition, etape)
+
+        # Si la partition est identique à la précédente (même nombre de groupes et répartition)
+        # On compare si les états qui étaient ensemble le restent
+        if len(set(nouvelle_partition.values())) == len(set(partition.values())):
+            # Vérification plus profonde : les groupes sont-ils identiques ?
+            stable = True
+            for e1 in automate.liste_etats:
+                for e2 in automate.liste_etats:
+                    if (partition[e1] == partition[e2]) != (nouvelle_partition[e1] == nouvelle_partition[e2]):
+                        stable = False
+                        break
+            if stable: break
+
+        partition = nouvelle_partition
+
+    # 2. Construction de l'automate minimal
+    print("\nConstruction de l'automate minimal...")
+    min_auto = Automate()
+    min_auto.nb_symboles = automate.nb_symboles
+    min_auto.alphabet = automate.alphabet.copy()
+
+    # Création des nouveaux noms d'états basés sur les groupes finaux
+    groupes_finaux = {}
+    for e, g in partition.items():
+        groupes_finaux.setdefault(g, []).append(e)
+
+    mapping_nom = {g: ".".join(map(str, sorted(groupes_finaux[g]))) for g in groupes_finaux}
+
+    min_auto.liste_etats = list(mapping_nom.values())
+    min_auto.nb_etats = len(min_auto.liste_etats)
+
+    for g, nom_fusionne in mapping_nom.items():
+        etat_representant = groupes_finaux[g][0]
+
+        # Initiales / Terminales
+        if etat_representant in automate.etats_initiaux:
+            min_auto.etats_initiaux.add(nom_fusionne)
+        if etat_representant in automate.etats_terminaux:
+            min_auto.etats_terminaux.add(nom_fusionne)
+
+        # Transitions
+        min_auto.transitions[nom_fusionne] = {}
+        for symbole in automate.alphabet:
+            dest_origine = automate.transitions[etat_representant][symbole][0]
+            groupe_dest = partition[dest_origine]
+            min_auto.transitions[nom_fusionne][symbole] = [mapping_nom[groupe_dest]]
+
+    return min_auto
 
 def afficher_automate_minimal(automate):
     afficher_automate(automate)
