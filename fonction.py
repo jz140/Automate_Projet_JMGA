@@ -152,8 +152,8 @@ def minimisation(automate):
 def afficher_automate_minimal(automate):
     pass
 
-def lire_mot(mot):
-    pass
+def lire_mot():
+    return input("Saisissez un mot (ou tapez 'fin' pour terminer) : ")
 
 def reconnaitre_mot(mot, automate):
     etat_courant = automate["initial"]
