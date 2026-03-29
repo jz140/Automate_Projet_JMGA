@@ -9,7 +9,7 @@ Il contient :
 - le dossier **automates**, qui contient l’ensemble des automates retranscrits en fichiers .txt qui nous ont été fournis.
 - des dossiers de preuves en .txt des automates standardisés, complétés et déterminisés.
 
-S’il n’y a pas de fichier .txt, cela signifie que l’automate est déjà standardisé, déterministe et complet.
+S’il n’y a pas de fichier .txt, cela signifie que l’automate est déjà standardisé, déterministe ou complet.
 
 Fait par :
 
