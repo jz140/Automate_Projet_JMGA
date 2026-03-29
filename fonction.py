@@ -97,10 +97,45 @@ def standardisation(automate):
     pass
 
 def est_un_automate_deterministe(automate):
-    pass
+    print("\n--- Vérification du déterminisme ---")
+    raisons = []
+
+    # Vérification de l'état initial unique
+    if len(automate.etats_initiaux) != 1:
+        raisons.append(f"Il y a {len(automate.etats_initiaux)} états initiaux (il en faut exactement 1).")
+
+    # Vérification de l'unicité des transitions (pas de transitions multiples pour un même symbole)
+    for etat in automate.etats:
+        for symbole in automate.alphabet:
+            cibles = [t[2] for t in automate.transitions if t[0] == etat and t[1] == symbole]
+            if len(cibles) > 1:
+                raisons.append(f"L'état {etat} possède plusieurs transitions pour le symbole '{symbole}' vers {cibles}")
+
+    if raisons:
+        for r in raisons:
+            print(f"Cause : {r}")
+        return False
+
+    print("L'automate est déterministe.")
+    return True
 
 def est_un_automate_complet(automate):
-    pass
+    print("\n--- Vérification de la complétude ---")
+    manquants = []
+
+    for etat in automate.etats:
+        for symbole in automate.alphabet:
+            # On cherche s'il existe au moins une transition
+            trouve = any(t[0] == etat and t[1] == symbole for t in automate.transitions)
+            if not trouve:
+                manquants.append(f"({etat}, {symbole})")
+
+    if manquants:
+        print(f"L'automate n'est pas complet. Transitions manquantes : {', '.join(manquants)}")
+        return False
+
+    print("L'automate est complet.")
+    return True
 
 def completion(automate):
     pass
@@ -136,4 +171,12 @@ def reconnaitre_mot(mot, automate):
         print("non")
 
 def automate_complementaire(automate):
-    pass
+    complement = copy.deepcopy(automate)
+
+    nouveaux_terminaux = set()
+    for etat in automate.liste_etats:
+        if etat not in automate.etats_terminaux:
+            nouveaux_terminaux.add(etat)
+
+    complement.etats_terminaux = nouveaux_terminaux
+    return complement
