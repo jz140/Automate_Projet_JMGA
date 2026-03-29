@@ -47,48 +47,48 @@ def lire_automate_sur_fichier(nom_du_fichier):
     return automate
 def afficher_automate(automate):
 
-    # afficher l'entête
-    print("   ", end="")
-    print(" ", end="")
+    # entête
+    ligne = "    "
     for symbole in automate.alphabet:
-        print(symbole, end="   ")
-    print()
+        ligne += symbole + "   "
+    print(ligne)
 
-    # pour chaque état
+    # lignes
     for etat in automate.etats:
+
+        ligne = ""
 
         # on affiche les entrées et les sorties
         if etat in automate.etats_initiaux:
-            print("E ", end="")
+            ligne += "E "
         elif etat in automate.etats_finaux:
-            print("S ", end="")
+            ligne += "S "
         else:
-            print("  ", end="")
+            ligne += "  "
 
         # numéro état
-        print(etat, end="   ")
+        ligne += str(etat) + "   "
 
-        # pour chaque symbole
+        # transitions
         for symbole in automate.alphabet:
 
             arrivees = []
 
-            # chercher transitions
             for t in automate.transitions:
                 if t[0] == etat and t[1] == symbole:
                     arrivees.append(t[2])
 
-            # affichage
             if len(arrivees) == 0:
-                print("--", end="  ")
+                ligne += "--   "
             else:
+                texte = ""
                 for i in range(len(arrivees)):
-                    print(arrivees[i], end="")
+                    texte += str(arrivees[i])
                     if i < len(arrivees) - 1:
-                        print(",", end="")
-                print("  ", end="")
+                        texte += ","
+                ligne += texte + "   "
 
-        print()
+        print(ligne)
 def non_standard(automate):
     pass
 
