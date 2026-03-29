@@ -119,7 +119,7 @@ def afficher_automate_minimal(automate):
 def lire_mot(mot):
     pass
 
-def reconnaitre_mot(mot, A):
+def reconnaitre_mot(mot, automate):
     pass
 
 def automate_complementaire(automate):
