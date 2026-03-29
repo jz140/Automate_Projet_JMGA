@@ -193,7 +193,71 @@ def completion(automate):
     return afdc
 
 def determinisation_et_completion_automate(automate):
-    pass
+    print("\n--- Déterminisation et Complétion ---")
+    AFDC = Automate()
+    AFDC.alphabet = automate.alphabet[:]
+    AFDC.mapping = {}
+
+    # On initie l'état initial (mélange de tous les états initiaux de AF)
+    # On trie pour que {1,2} soit identique à {2,1}
+    etat_init = tuple(sorted(list(set(automate.etats_initiaux))))
+
+    file_a_traiter = [etat_init] # Liste des "groupes" à analyser
+    groupes_vus = [etat_init]    # Pour ne pas traiter deux fois le même groupe
+
+    while len(file_a_traiter) > 0:
+        groupe_courant = file_a_traiter.pop(0)
+
+        #Création du nom de l'état (ex: "1.2" ou "P" si vide)
+        if len(groupe_courant) == 0:
+            nom_courant = "P"
+        else:
+            nom_courant = ".".join(map(str, groupe_courant))
+
+        # On ajoute l'état à l'AFDC s'il n'y est pas déjà
+        if nom_courant not in AFDC.etats:
+            AFDC.etats.append(nom_courant)
+            AFDC.mapping[nom_courant] = list(groupe_courant)
+
+            # Est-ce un état initial ?
+            if groupe_courant == etat_init:
+                AFDC.etats_initiaux.append(nom_courant)
+
+            # Est-ce un état final ? (si au moins un membre est final)
+            for e in groupe_courant:
+                if e in automate.etats_finaux:
+                    AFDC.etats_finaux.append(nom_courant)
+                    break # Un seul suffit
+
+        # Pour chaque lettre, on regarde où va le groupe
+        for lettre in AFDC.alphabet:
+            union_destinations = []
+
+            for e in groupe_courant:
+                for t in automate.transitions:
+                    # t[0]=départ, t[1]=lettre, t[2]=arrivée
+                    if t[0] == e and t[1] == lettre:
+                        if t[2] not in union_destinations:
+                            union_destinations.append(t[2])
+
+            #On transforme le résultat en tuple trié
+            groupe_suivant = tuple(sorted(union_destinations))
+
+            #Nom du groupe suivant
+            if len(groupe_suivant) == 0:
+                nom_suivant = "P"
+            else:
+                nom_suivant = ".".join(map(str, groupe_suivant))
+
+            #On crée la transition
+            AFDC.transitions.append((nom_courant, lettre, nom_suivant))
+
+            #Si ce nouveau groupe n'a jamais été vu, on l'ajoute à la file
+            if groupe_suivant not in groupes_vus:
+                groupes_vus.append(groupe_suivant)
+                file_a_traiter.append(groupe_suivant)
+
+    return AFDC
 
 def afficher_automate_deterministe_complet(automate):
     afficher_automate(automate)
