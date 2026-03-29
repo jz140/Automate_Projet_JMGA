@@ -14,6 +14,7 @@ def main():
         print("4 - Obtenir l'automate déterministe complet")
         print("5 - Reconnaître des mots")
         print("6 - Automate complémentaire")
+        print("7 - Minimiser l'automate (afdc → AFDCM)")
         print("0 - Quitter")
 
         choix = input("Choix : ")
@@ -43,14 +44,14 @@ def main():
         elif choix == "4":
             if est_un_automate_deterministe(fichier_automate):
                 if est_un_automate_complet(fichier_automate):
-                    AFDC = fichier_automate
+                    afdc = fichier_automate
                 else:
-                    AFDC = completion(fichier_automate)
+                    afdc = completion(fichier_automate)
             else:
-                AFDC = determinisation_et_completion_automate(fichier_automate)
+                afdc = determinisation_et_completion_automate(fichier_automate)
 
             print("Automate déterministe complet :")
-            afficher_automate_deterministe_complet(AFDC)
+            afficher_automate_deterministe_complet(afdc)
 
         elif choix == "5":
             mot = lire_mot()
@@ -64,8 +65,26 @@ def main():
             print("Automate complémentaire :")
             afficher_automate(AComp)
 
+        elif choix =="7":
+            if est_un_automate_deterministe(fichier_automate):
+                if est_un_automate_complet(fichier_automate):
+                    afdc = fichier_automate
+                else:
+                    afdc = completion(fichier_automate)
+            else:
+                afdc = determinisation_et_completion_automate(fichier_automate)
+
+            print("\nAutomate déterministe complet (afdc) :")
+            afficher_automate(afdc)
+
+            AFDCM = minimisation(afdc)
+
+            if AFDCM is not None:
+                print("\nAutomate minimal (AFDCM) :")
+                afficher_automate(AFDCM)
 
         elif choix == "0":
+
             print("Fin")
             break
 
